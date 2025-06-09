@@ -23,121 +23,104 @@ const students = {
     fiona: { age: 19, major: 'Literature', gpa: 3.4 },
 }
 
-// Example of nested object
-const carsNested = {
-    modelS: {
-        brand: 'Tesla',
-        color: 'white',
-        price: 79999,
-        engine: { power: '750hp', fuel: 'electric' },
-    },
-    corolla: {
-        brand: 'Toyota',
-        color: 'silver',
-        price: 20000,
-        engine: { power: '120hp', fuel: 'petrol' },
-    },
-    mustang: {
-        brand: 'Ford',
-        color: 'red',
-        price: 45000,
-        engine: { power: '400hp', fuel: 'petrol' },
-    },
-    civic: {
-        brand: 'Honda',
-        color: 'blue',
-        price: 22000,
-        engine: { power: '150hp', fuel: 'hydrogen' },
-    },
-    model3: {
-        brand: 'Tesla',
-        color: 'black',
-        price: 39999,
-        engine: { power: '500hp', fuel: 'electric' },
-    },
-    beetle: {
-        brand: 'Volkswagen',
-        color: 'yellow',
-        price: 18000,
-        engine: { power: '100hp', fuel: 'diesel' },
-    },
-}
-
-// type Value = number | string;
-
-// interface DictValue<Value> {
-//   [k: string]: Value;
-// }
-
-// type FilterVal = DictValue<number>;
-
-// type T = number | string | Dict<T>;
 interface Dict<T> {
     [k: string]: T
 }
 
 // Array.prototype.map, but for Dict
-function mapDict<T, U>(
-    inputObject: Dict<T>,
-    mappingFunction: (objectValue: T, key: string) => U
-): Dict<U> {
-    const mappedObject: Dict<U> = {}
+function mappingFunction1<T>(inputValue: T): T & { addedProperty: string } {
+    return { ...inputValue, addedProperty: 'addedValue' }
+}
 
-    Object.keys(inputObject).forEach(
-        (key) => (mappedObject[key] = mappingFunction(inputObject[key], key))
+function mappingFunction2<T>(inputValue: T): T {
+    if (
+        inputValue &&
+        typeof inputValue === 'object' &&
+        'age' in inputValue &&
+        typeof inputValue.age === 'number'
     )
-    return mappedObject
+        return { ...inputValue, age: inputValue?.age + 10 }
+    return inputValue
 }
 
-const mappingFunction = <U>(value: Dict<U>) => {
-    return { ...value, addedProperty: 'val' }
+function mapDict<Input, Output>(
+    inputObject: Dict<Input>,
+    mappingFunction: <Input>(value: Input) => Output
+): Dict<Output> {
+    const outputObject: Dict<Output> = {}
+    for (const inputKey in inputObject) {
+        outputObject[inputKey] = mappingFunction(inputObject[inputKey])
+    }
+    return outputObject
 }
 
-const mappedObject = mapDict(cars, mappingFunction)
-console.log(mappedObject)
+console.log(
+    'Cars objects with added property:',
+    mapDict(cars, mappingFunction1)
+)
+console.log(
+    'Students with their ages increased by 10:',
+    mapDict(students, mappingFunction2)
+)
 
 // Array.prototype.filter, but for Dict
-function filterDict<T>(
-    inputObject: Dict<T>,
-    filteringFunction: (objectValue: T) => boolean
-): Dict<T> {
-    const filteredObject: Dict<T> = {}
-
-    Object.keys(inputObject).forEach(
-        (key) =>
-            filteringFunction(inputObject[key]) &&
-            (filteredObject[key] = inputObject[key])
+function filteringFunction1<Input>(inputValue: Input): boolean {
+    if (
+        inputValue &&
+        typeof inputValue === 'object' &&
+        'age' in inputValue &&
+        typeof inputValue.age === 'number' &&
+        inputValue.age >= 21
     )
-    return filteredObject
+        return true
+    return false
 }
 
-const filteringFunction = <T>(value: Dict<T>): boolean => {
-    return typeof value?.price === 'number' && value?.price > 30000
+function filterDict<Input>(
+    inputObject: Dict<Input>,
+    filteringFunction: (value: Input) => boolean
+): Dict<Input> {
+    const outputObject: Dict<Input> = {}
+    for (const inputKey in inputObject) {
+        if (filteringFunction(inputObject[inputKey]))
+            outputObject[inputKey] = inputObject[inputKey]
+    }
+    return outputObject
 }
 
-const filteredObject = filterDict(cars, filteringFunction)
-console.log(filteredObject)
+console.log(
+    'Students with age larger than/equal 22:',
+    filterDict(students, filteringFunction1)
+)
 
 // Array.prototype.reduce, but for Dict
-function reduceDict<T, AccumulatorType>(
-    inputObject: Dict<T>,
-    reduceFunction: (
-        accumulator: AccumulatorType,
-        objectValue: T
+function reduceFunction1<InputType>(
+    inputValue: InputType,
+    accumulator: number
+): number {
+    if (
+        inputValue &&
+        typeof inputValue === 'object' &&
+        'price' in inputValue &&
+        typeof inputValue.price === 'number'
+    )
+        return accumulator + inputValue.price
+    return 0
+}
+
+function reduceDict<InputType, AccumulatorType>(
+    inputObject: Dict<InputType>,
+    reducerFunction: (
+        element: InputType,
+        accumulator: AccumulatorType
     ) => AccumulatorType,
     initialValue: AccumulatorType
 ): AccumulatorType {
-    let accumulator = initialValue
-    Object.keys(inputObject).forEach(
-        (key) => (accumulator = reduceFunction(accumulator, inputObject[key]))
-    )
+    let accumulator: AccumulatorType = initialValue
+    for (const inputKey in inputObject) {
+        accumulator = reducerFunction(inputObject[inputKey], accumulator)
+    }
     return accumulator
 }
 
-const reduceFunction = <T>(accumulator: number, value: Dict<T>): number => {
-    if (typeof value?.price === 'number') return accumulator + value?.price
-    return accumulator
-}
-
-const totalPrice = reduceDict(cars, reduceFunction, 0)
-console.log(totalPrice)
+console.log('Total price of cars:', reduceDict(cars, reduceFunction1, 0))
