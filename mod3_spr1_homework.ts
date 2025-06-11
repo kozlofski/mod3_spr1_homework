@@ -28,6 +28,17 @@ interface Dict<T> {
 }
 
 // Array.prototype.map, but for Dict
+function mapDict<Input, Output>(
+    inputObject: Dict<Input>,
+    mappingFunction: (value: Input) => Output
+): Dict<Output> {
+    const outputObject: Dict<Output> = {}
+    for (const inputKey in inputObject) {
+        outputObject[inputKey] = mappingFunction(inputObject[inputKey])
+    }
+    return outputObject
+}
+
 function mappingFunction1<T>(inputValue: T): T & { addedProperty: string } {
     return { ...inputValue, addedProperty: 'addedValue' }
 }
@@ -43,17 +54,6 @@ function mappingFunction2<T>(inputValue: T): T {
     return inputValue
 }
 
-function mapDict<Input, Output>(
-    inputObject: Dict<Input>,
-    mappingFunction: <Input>(value: Input) => Output
-): Dict<Output> {
-    const outputObject: Dict<Output> = {}
-    for (const inputKey in inputObject) {
-        outputObject[inputKey] = mappingFunction(inputObject[inputKey])
-    }
-    return outputObject
-}
-
 console.log(
     'Cars objects with added property:',
     mapDict(cars, mappingFunction1)
@@ -64,6 +64,18 @@ console.log(
 )
 
 // Array.prototype.filter, but for Dict
+function filterDict<InputType>(
+    inputObject: Dict<InputType>,
+    filteringFunction: (value: InputType) => boolean
+): Dict<InputType> {
+    const outputObject: Dict<InputType> = {}
+    for (const inputKey in inputObject) {
+        if (filteringFunction(inputObject[inputKey]))
+            outputObject[inputKey] = inputObject[inputKey]
+    }
+    return outputObject
+}
+
 function filteringFunction1<Input>(inputValue: Input): boolean {
     if (
         inputValue &&
@@ -76,38 +88,12 @@ function filteringFunction1<Input>(inputValue: Input): boolean {
     return false
 }
 
-function filterDict<Input>(
-    inputObject: Dict<Input>,
-    filteringFunction: (value: Input) => boolean
-): Dict<Input> {
-    const outputObject: Dict<Input> = {}
-    for (const inputKey in inputObject) {
-        if (filteringFunction(inputObject[inputKey]))
-            outputObject[inputKey] = inputObject[inputKey]
-    }
-    return outputObject
-}
-
 console.log(
     'Students with age larger than/equal 22:',
     filterDict(students, filteringFunction1)
 )
 
 // Array.prototype.reduce, but for Dict
-function reduceFunction1<InputType>(
-    inputValue: InputType,
-    accumulator: number
-): number {
-    if (
-        inputValue &&
-        typeof inputValue === 'object' &&
-        'price' in inputValue &&
-        typeof inputValue.price === 'number'
-    )
-        return accumulator + inputValue.price
-    return 0
-}
-
 function reduceDict<InputType, AccumulatorType>(
     inputObject: Dict<InputType>,
     reducerFunction: (
@@ -121,6 +107,20 @@ function reduceDict<InputType, AccumulatorType>(
         accumulator = reducerFunction(inputObject[inputKey], accumulator)
     }
     return accumulator
+}
+
+function reduceFunction1<InputType>(
+    inputValue: InputType,
+    accumulator: number
+): number {
+    if (
+        inputValue &&
+        typeof inputValue === 'object' &&
+        'price' in inputValue &&
+        typeof inputValue.price === 'number'
+    )
+        return accumulator + inputValue.price
+    return 0
 }
 
 console.log('Total price of cars:', reduceDict(cars, reduceFunction1, 0))
